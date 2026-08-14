@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "Custom Auto Scroller",
+  "version": "0.1",
+  "description": "速度調整パネル付き自動スクロール拡張機能",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_title": "Auto Scroll Toggle",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png"
+    }
+  },
+  "permissions": ["activeTab"],
+  "commands": {
+    "toggle-scroll": {
+      "suggested_key": {
+        "default": "Alt+S",
+        "mac": "Alt+S"
+      },
+      "description": "スクロールの開始/停止"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "css": ["styles.css"],
+      "js": ["content.js"]
+    }
+  ]
+}
