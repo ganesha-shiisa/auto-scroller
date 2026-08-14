@@ -2,10 +2,21 @@ let isScrolling = false;
 let scrollInterval = null;
 let speed = 20; // 初期速度 (px/sec)
 
+// 保存されている speed を読み込む
+chrome.storage.local.get(["savedSpeed"], (result) => {
+  if (result.savedSpeed) {
+    speed = result.savedSpeed;
+    // パネルの表示テキストも保存された速度に更新
+    const speedEl = document.getElementById("asc-speed");
+    if (speedEl) {
+      speedEl.innerText = `Speed: ${speed}`;
+    }
+  }
+});
 
 // パネル要素の生成
-let panel = document.createElement('div');
-panel.id = 'auto-scroll-custom-panel';
+let panel = document.createElement("div");
+panel.id = "auto-scroll-custom-panel";
 panel.innerHTML = `
   <div class="asc-title">Auto Scroll</div>
   <div class="asc-controls">
@@ -18,9 +29,9 @@ panel.innerHTML = `
 document.body.appendChild(panel);
 
 // イベントリスナーの登録
-document.getElementById('asc-slower').onclick = () => changeSpeed(-1);
-document.getElementById('asc-faster').onclick = () => changeSpeed(1);
-document.getElementById('asc-stop').onclick = () => stopScroll();
+document.getElementById("asc-slower").onclick = () => changeSpeed(-1);
+document.getElementById("asc-faster").onclick = () => changeSpeed(1);
+document.getElementById("asc-stop").onclick = () => stopScroll();
 
 // ショートカット受信（background.jsからのメッセージ）
 chrome.runtime.onMessage.addListener((request) => {
@@ -30,17 +41,29 @@ chrome.runtime.onMessage.addListener((request) => {
 });
 
 // キーボードによる直感操作
-window.addEventListener('keydown', (e) => {
+window.addEventListener("keydown", (e) => {
   if (!isScrolling) return;
-  if (e.key === 'ArrowUp') {
+  if (e.key === "ArrowUp") {
     changeSpeed(1);
     e.preventDefault();
-  } else if (e.key === 'ArrowDown') {
+  } else if (e.key === "ArrowDown") {
     changeSpeed(-1);
     e.preventDefault();
-  } else if (e.key === 'Escape') {
+  } else if (e.key === "Escape") {
     stopScroll();
   }
+});
+
+// 画面クリックでスクロールを停止するイベント処理
+window.addEventListener("click", (e) => {
+  // スクロール中でないなら何もしない
+  if (!isScrolling) return;
+
+  // クリックされた要素が「操作パネル（panel）」の内部にある場合は無視する
+  if (panel.contains(e.target)) return;
+
+  // パネル外のページ本文をクリックした場合はスクロール停止！
+  stopScroll();
 });
 
 function toggleScroll() {
@@ -61,7 +84,7 @@ function applyScrollSettings() {
   if (!isScrolling) return;
 
   // --- coord と intervalMs の自動計算 ---
-  let targetInterval = 16; 
+  let targetInterval = 16;
   let coord = (speed * targetInterval) / 1000;
 
   // 0.5px未満なら coord を0.5に固定し、タイマー側を広げる
@@ -80,14 +103,14 @@ function applyScrollSettings() {
 function startScroll() {
   if (isScrolling) return;
   isScrolling = true;
-  panel.style.display = 'block';
+  panel.style.display = "block";
   applyScrollSettings();
 }
 
 // 停止関数
 function stopScroll() {
   isScrolling = false;
-  panel.style.display = 'none';
+  panel.style.display = "none";
   if (scrollInterval) {
     clearInterval(scrollInterval);
     scrollInterval = null;
@@ -97,7 +120,10 @@ function stopScroll() {
 // 速度変更関数（ここから applyScrollSettings を呼ぶことでリアルタイム反映！）
 function changeSpeed(delta) {
   speed = Math.max(1, speed + delta);
-  document.getElementById('asc-speed').innerText = `Speed: ${speed}`;
+  document.getElementById("asc-speed").innerText = `Speed: ${speed}`;
+
+  // 変更したSpeedを保存
+  chrome.storage.local.set({ savedSpeed: speed });
 
   // スクロール中なら、新しい速度でタイマーをリアルタイム更新！
   if (isScrolling) {

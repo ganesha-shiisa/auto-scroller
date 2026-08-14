@@ -1,11 +1,15 @@
 // 通用メッセージ送信関数
 function sendToggleMessage(tab) {
-  if (tab?.id && tab.url && !tab.url.startsWith("chrome://") && !tab.url.startsWith("edge://")) {
-    chrome.tabs.sendMessage(tab.id, { action: "toggle" })
-      .catch((err) => {
-        // ページが未リロードの場合などのエラーを静かに無視
-        console.log("content.jsがまだ準備できていませんにゃ");
-      });
+  if (
+    tab?.id &&
+    tab.url &&
+    !tab.url.startsWith("chrome://") &&
+    !tab.url.startsWith("edge://")
+  ) {
+    chrome.tabs.sendMessage(tab.id, { action: "toggle" }).catch((err) => {
+      // ページが未リロードの場合などのエラーを静かに無視
+      console.log("content.jsがまだ準備できていませんにゃ");
+    });
   }
 }
 
