@@ -3,7 +3,7 @@ let scrollInterval = null;
 let speed = 20; // 初期速度 (px/sec)
 
 // 保存されている speed を読み込む
-chrome.storage.local.get(["savedSpeed"], (result) => {
+chrome.storage.local.get(["savedSpeed", "autoScrollActive"], (result) => {
   if (result.savedSpeed) {
     speed = result.savedSpeed;
     // パネルの表示テキストも保存された速度に更新
@@ -11,6 +11,10 @@ chrome.storage.local.get(["savedSpeed"], (result) => {
     if (speedEl) {
       speedEl.innerText = `Speed: ${speed}`;
     }
+  }
+
+  if (result.autoScrollActive) {
+    startScroll();
   }
 });
 
@@ -62,6 +66,9 @@ window.addEventListener("click", (e) => {
   // クリックされた要素が「操作パネル（panel）」の内部にある場合は無視する
   if (panel.contains(e.target)) return;
 
+  // クリックされた要素（またはその親要素）がリンク（<a>タグ）なら無視
+  if (e.target.closest("a")) return;
+
   // パネル外のページ本文をクリックした場合はスクロール停止！
   stopScroll();
 });
@@ -103,6 +110,10 @@ function applyScrollSettings() {
 function startScroll() {
   if (isScrolling) return;
   isScrolling = true;
+
+  // 起動状態を保存
+  chrome.storage.local.set({ autoScrollActive: true });
+
   panel.style.display = "block";
   applyScrollSettings();
 }
@@ -111,6 +122,10 @@ function startScroll() {
 function stopScroll() {
   isScrolling = false;
   panel.style.display = "none";
+
+  // 停止状態を保存
+  chrome.storage.local.set({ autoScrollActive: false });
+
   if (scrollInterval) {
     clearInterval(scrollInterval);
     scrollInterval = null;

@@ -13,7 +13,7 @@ function sendToggleMessage(tab) {
   }
 }
 
-// 1. ショートカットキー（Alt+S等）が押された時
+// ショートカットキー（Alt+S等）が押された時
 chrome.commands.onCommand.addListener((command) => {
   if (command === "toggle-scroll") {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -22,7 +22,7 @@ chrome.commands.onCommand.addListener((command) => {
   }
 });
 
-// 2. ツールバーのアイコンがクリックされた時（★ここを追加！）
+// ツールバーのアイコンがクリックされた時
 chrome.action.onClicked.addListener((tab) => {
   sendToggleMessage(tab);
 });
