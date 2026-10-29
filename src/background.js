@@ -26,3 +26,33 @@ chrome.commands.onCommand.addListener((command) => {
 chrome.action.onClicked.addListener((tab) => {
   sendToggleMessage(tab);
 });
+
+// スクロール中のタブを管理
+const activeScrollingTabs = new Set();
+
+// スリープ制御メッセージの受信
+chrome.runtime.onMessage.addListener((message, sender) => {
+  if (message.action === "setKeepAwake" && sender.tab?.id) {
+    const tabId = sender.tab.id;
+    if (message.state) {
+      activeScrollingTabs.add(tabId);
+      chrome.power.requestKeepAwake("display");
+    } else {
+      activeScrollingTabs.delete(tabId);
+      if (activeScrollingTabs.size === 0) {
+        chrome.power.releaseKeepAwake();
+      }
+    }
+  }
+});
+
+// スクロール中のタブが閉じられた時のクリーンアップ
+chrome.tabs.onRemoved.addListener((tabId) => {
+  if (activeScrollingTabs.has(tabId)) {
+    activeScrollingTabs.delete(tabId);
+    if (activeScrollingTabs.size === 0) {
+      chrome.power.releaseKeepAwake();
+    }
+  }
+});
+

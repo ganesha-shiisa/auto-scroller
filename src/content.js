@@ -106,6 +106,13 @@ function applyScrollSettings() {
   }, targetInterval);
 }
 
+// 画面スリープ防止メッセージ送信関数
+function updateKeepAwake(state) {
+  chrome.runtime.sendMessage({ action: "setKeepAwake", state }).catch(() => {
+    // Service Workerが停止している場合などのエラーを静かに無視
+  });
+}
+
 // 起動関数
 function startScroll() {
   if (isScrolling) return;
@@ -113,6 +120,9 @@ function startScroll() {
 
   // 起動状態を保存
   chrome.storage.local.set({ autoScrollActive: true });
+
+  // スリープ防止をリクエスト
+  updateKeepAwake(true);
 
   panel.style.display = "block";
   applyScrollSettings();
@@ -126,11 +136,21 @@ function stopScroll() {
   // 停止状態を保存
   chrome.storage.local.set({ autoScrollActive: false });
 
+  // スリープ防止を解除
+  updateKeepAwake(false);
+
   if (scrollInterval) {
     clearInterval(scrollInterval);
     scrollInterval = null;
   }
 }
+
+// タブ移動やページ遷移時にスクロール中だった場合はスリープ防止を解除
+window.addEventListener("beforeunload", () => {
+  if (isScrolling) {
+    updateKeepAwake(false);
+  }
+});
 
 // 速度変更関数（ここから applyScrollSettings を呼ぶことでリアルタイム反映！）
 function changeSpeed(delta) {

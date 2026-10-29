@@ -15,7 +15,7 @@
       "48": "icons/icon48.png"
     }
   },
-  "permissions": ["activeTab", "storage"],
+  "permissions": ["activeTab", "storage", "power"],
   "commands": {
     "toggle-scroll": {
       "suggested_key": {
